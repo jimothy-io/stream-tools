@@ -1,15 +1,19 @@
 "use strict";
 
-const PALETTE = [0, 30, 60, 120, 180, 210, 270, 300];
 const logo = document.getElementById("logo");
 
+let CONFIG;
 let x = 100;
 let y = 100;
-let vx = 220;
-let vy = 160;
-
+let vx = 0;
+let vy = 0;
 let colorIndex = 0;
 let lastTime = performance.now();
+
+function applyColor() {
+  logo.style.filter =
+    `invert(1) sepia(1) saturate(8) hue-rotate(${CONFIG.palette[colorIndex]}deg)`;
+}
 
 function tick(now) {
   const dt = (now - lastTime) / 1000;
@@ -45,9 +49,8 @@ function tick(now) {
   }
 
   if (bounced) {
-    colorIndex = (colorIndex + 1) % PALETTE.length;
-    logo.style.filter =
-      `invert(1) sepia(1) saturate(8) hue-rotate(${PALETTE[colorIndex]}deg)`;
+    colorIndex = (colorIndex + 1) % CONFIG.palette.length;
+    applyColor();
   }
 
   logo.style.transform = `translate(${x}px, ${y}px)`;
@@ -55,13 +58,24 @@ function tick(now) {
 }
 
 function start() {
-  logo.style.filter =
-    `invert(1) sepia(1) saturate(8) hue-rotate(${PALETTE[colorIndex]}deg)`;
+  logo.style.width = `${CONFIG.logoWidth}px`;
+  logo.getBoundingClientRect();
+  vx = CONFIG.speedX;
+  vy = CONFIG.speedY;
+  applyColor();
   requestAnimationFrame(tick);
 }
 
-if (logo.complete) {
-  start();
-} else {
-  logo.onload = start;
-}
+fetch("config.json")
+  .then(r => {
+    if (!r.ok) throw new Error("Failed to load config.json.");
+    return r.json();
+  })
+  .then(cfg => {
+    CONFIG = Object.freeze(cfg);
+    if (logo.complete) start();
+    else logo.onload = start;
+  })
+  .catch(err => {
+    console.error(err);
+  });
