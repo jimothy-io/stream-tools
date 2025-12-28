@@ -1,8 +1,17 @@
 "use strict";
 
-const logo = document.getElementById("logo");
+/*
+  Assumptions:
+  - index.html contains: <div id="logo"></div>
+  - logo.svg is a white SVG in the same folder
+  - config.json exists and is readable (OBS: Enable Local File Access)
+*/
+
+const logoContainer = document.getElementById("logo");
 
 let CONFIG;
+
+// Motion State
 let x = 100;
 let y = 100;
 let vx = 0;
@@ -10,10 +19,44 @@ let vy = 0;
 let colorIndex = 0;
 let lastTime = performance.now();
 
-function applyColor() {
-  logo.style.filter =
-    `invert(1) sepia(1) saturate(8) hue-rotate(${CONFIG.palette[colorIndex]}deg)`;
+/* ---------------- SVG LOADING ---------------- */
+
+async function loadSVG(url) {
+  const res = await fetch(url);
+  if (!res.ok) throw new Error("Failed to load logo.svg");
+
+  const text = await res.text();
+
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(text, "image/svg+xml");
+  const svg = doc.documentElement;
+
+  // Normalize SVG so it behaves like an inline icon.
+  svg.setAttribute("width", "100%");
+  svg.setAttribute("height", "100%");
+  svg.setAttribute("fill", "currentColor");
+
+  // Force all drawable elements to inherit color.
+  svg.querySelectorAll("*").forEach(el => {
+    if (el.hasAttribute("fill") && el.getAttribute("fill") !== "none") {
+      el.setAttribute("fill", "currentColor");
+    }
+    if (el.hasAttribute("stroke") && el.getAttribute("stroke") !== "none") {
+      el.setAttribute("stroke", "currentColor");
+    }
+  });
+
+  return svg;
 }
+
+/* ---------------- COLOR ---------------- */
+
+function applyColor() {
+  const hue = CONFIG.palette[colorIndex];
+  logoContainer.style.color = `hsl(${hue}, 100%, 55%)`;
+}
+
+/* ---------------- ANIMATION ---------------- */
 
 function tick(now) {
   const dt = (now - lastTime) / 1000;
@@ -21,7 +64,7 @@ function tick(now) {
 
   const w = window.innerWidth;
   const h = window.innerHeight;
-  const rect = logo.getBoundingClientRect();
+  const rect = logoContainer.getBoundingClientRect();
 
   x += vx * dt;
   y += vy * dt;
@@ -53,28 +96,42 @@ function tick(now) {
     applyColor();
   }
 
-  logo.style.transform = `translate(${x}px, ${y}px)`;
+  logoContainer.style.transform = `translate(${x}px, ${y}px)`;
   requestAnimationFrame(tick);
 }
 
+/* ---------------- STARTUP ---------------- */
+
 function start() {
-  logo.style.width = `${CONFIG.logoWidth}px`;
-  logo.getBoundingClientRect();
+  // Apply size once.
+  logoContainer.style.width = `${CONFIG.logoWidth}px`;
+
+  // force layout so bounding box is correct.
+  logoContainer.getBoundingClientRect();
+
   vx = CONFIG.speedX;
   vy = CONFIG.speedY;
+
   applyColor();
   requestAnimationFrame(tick);
 }
 
-fetch("config.json")
-  .then(r => {
-    if (!r.ok) throw new Error("Failed to load config.json.");
+/* ---------------- BOOTSTRAP ---------------- */
+
+Promise.all([
+  fetch("config.json").then(r => {
+    if (!r.ok) throw new Error("Failed to load config.json");
     return r.json();
-  })
-  .then(cfg => {
+  }),
+  loadSVG("logo.svg")
+])
+  .then(([cfg, svg]) => {
     CONFIG = Object.freeze(cfg);
-    if (logo.complete) start();
-    else logo.onload = start;
+
+    // Insert SVG into container.
+    logoContainer.appendChild(svg);
+
+    start();
   })
   .catch(err => {
     console.error(err);
