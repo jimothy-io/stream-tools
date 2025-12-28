@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<style>
+html, body {
+  margin: 0;
+  width: 100%;
+  height: 100%;
+  background: transparent;
+  overflow: hidden;
+}
+
+#logo {
+  position: absolute;
+  width: 160px;
+  height: auto;
+  will-change: transform, filter;
+}
+</style>
+</head>
+<body>
+
+<img id="logo" src="logo.svg" />
+
+<script>    
+const PALETTE = [
+  0,    // red
+  30,   // orange
+  60,   // yellow
+  120,  // green
+  180,  // cyan
+  210,  // blue
+  270,  // purple
+  300   // magenta
+];
+
+const logo = document.getElementById("logo");
+
+let x = 100;
+let y = 100;
+let vx = 220;
+let vy = 160;
+
+let colorIndex = 0;
+let lastTime = performance.now();
+
+function randomHue() {
+  return Math.floor(Math.random() * 360);
+}
+
+function tick(now) {
+  const dt = (now - lastTime) / 1000;
+  lastTime = now;
+
+  const w = window.innerWidth;
+  const h = window.innerHeight;
+  const rect = logo.getBoundingClientRect();
+
+  x += vx * dt;
+  y += vy * dt;
+
+  let bounced = false;
+
+  if (x <= 0) {
+    x = 0;
+    vx *= -1;
+    bounced = true;
+  } else if (x + rect.width >= w) {
+    x = w - rect.width;
+    vx *= -1;
+    bounced = true;
+  }
+
+  if (y <= 0) {
+    y = 0;
+    vy *= -1;
+    bounced = true;
+  } else if (y + rect.height >= h) {
+    y = h - rect.height;
+    vy *= -1;
+    bounced = true;
+  }
+
+  if (bounced) {
+    colorIndex = (colorIndex + 1) % PALETTE.length;
+
+    logo.style.filter =
+      `invert(1) sepia(1) saturate(8) hue-rotate(${PALETTE[colorIndex]}deg)`;
+  }
+
+  logo.style.transform = `translate(${x}px, ${y}px)`;
+  requestAnimationFrame(tick);
+}
+
+logo.onload = () => {
+  requestAnimationFrame(tick);
+};
+</script>
+
+</body>
+</html>
