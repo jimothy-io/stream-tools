@@ -54,6 +54,8 @@ async function loadSVG(url) {
 function applyColor() {
   const hue = CONFIG.palette[colorIndex];
   logoContainer.style.color = `hsl(${hue}, 100%, 55%)`;
+  logoContainer.style.filter =
+    `drop-shadow(6px 6px 0 rgba(0,0,0,0.85))`;
 }
 
 /* ---------------- ANIMATION ---------------- */
