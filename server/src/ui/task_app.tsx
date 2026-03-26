@@ -4,6 +4,7 @@ import type { TaskData, TaskPriority } from "../features/tasks/task_types.ts";
 type TaskAppProps = {
   tasks: TaskData[];
   priorities: readonly TaskPriority[];
+  editable?: boolean;
 };
 
 const PRIORITY_LABELS: Record<TaskPriority, string> = {
@@ -13,24 +14,34 @@ const PRIORITY_LABELS: Record<TaskPriority, string> = {
 };
 
 export function TaskApp(props: TaskAppProps) {
+  const isEditable = props.editable ?? true;
+
   return (
     <main style={styles.shell}>
       <section style={styles.card}>
-        <form method="POST" action="/tasks" style={styles.addForm}>
-          <input
-            type="text"
-            name="title"
-            placeholder="Add a task..."
-            required
-            style={styles.input}
-          />
-          <select name="priority" defaultValue="medium" style={styles.select}>
-            {props.priorities.map((priority) => (
-              <option value={priority}>{PRIORITY_LABELS[priority]}</option>
-            ))}
-          </select>
-          <button type="submit" style={styles.primaryButton}>Add</button>
-        </form>
+        {isEditable
+          ? (
+            <form method="POST" action="/tasks" style={styles.addForm}>
+              <input
+                type="text"
+                name="title"
+                placeholder="Add a task..."
+                required
+                style={styles.input}
+              />
+              <select
+                name="priority"
+                defaultValue="medium"
+                style={styles.select}
+              >
+                {props.priorities.map((priority) => (
+                  <option value={priority}>{PRIORITY_LABELS[priority]}</option>
+                ))}
+              </select>
+              <button type="submit" style={styles.primaryButton}>Add</button>
+            </form>
+          )
+          : null}
 
         <section style={styles.list}>
           {props.tasks.length === 0
@@ -45,17 +56,21 @@ export function TaskApp(props: TaskAppProps) {
             : (
               props.tasks.map((task) => (
                 <article style={styles.taskRow} key={task.id}>
-                  <form method="POST" action={`/tasks/${task.id}/toggle`}>
-                    <button
-                      type="submit"
-                      style={checkboxStyle(task.isChecked)}
-                      aria-label={task.isChecked
-                        ? "Mark task as open"
-                        : "Mark task as done"}
-                    >
-                      {task.isChecked ? "\u2713" : ""}
-                    </button>
-                  </form>
+                  {isEditable
+                    ? (
+                      <form method="POST" action={`/tasks/${task.id}/toggle`}>
+                        <button
+                          type="submit"
+                          style={checkboxStyle(task.isChecked)}
+                          aria-label={task.isChecked
+                            ? "Mark task as open"
+                            : "Mark task as done"}
+                        >
+                          {task.isChecked ? "\u2713" : ""}
+                        </button>
+                      </form>
+                    )
+                    : <span style={checkboxStyle(task.isChecked)} />}
 
                   <div style={styles.taskBody}>
                     <span style={priorityBadgeStyle(task.priority)}>
@@ -66,7 +81,7 @@ export function TaskApp(props: TaskAppProps) {
                     </strong>
                   </div>
 
-                  {task.isChecked
+                  {isEditable && task.isChecked
                     ? (
                       <form method="POST" action={`/tasks/${task.id}/delete`}>
                         <button

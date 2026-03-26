@@ -7,24 +7,36 @@ import {
   type TaskPriority,
 } from "./task_types.ts";
 
+const TASK_EDIT_ROUTE = "/task-edit";
+const TASKS_DISPLAY_ROUTE = "/tasks";
+
 export function createTaskHttpHandler(taskService: TaskService) {
   return async (request: Request): Promise<Response> => {
     const url = new URL(request.url);
     const { pathname } = url;
 
     if (request.method === "GET" && pathname === "/") {
-      const tasks = await taskService.listTasks();
-      return htmlResponse(renderDocument(tasks));
+      return redirect(TASK_EDIT_ROUTE);
     }
 
-    if (request.method === "POST" && pathname === "/tasks") {
+    if (request.method === "GET" && pathname === TASK_EDIT_ROUTE) {
+      const tasks = await taskService.listTasks();
+      return htmlResponse(renderDocument(tasks, { editable: true }));
+    }
+
+    if (request.method === "GET" && pathname === TASKS_DISPLAY_ROUTE) {
+      const tasks = await taskService.listTasks();
+      return htmlResponse(renderDocument(tasks, { editable: false }));
+    }
+
+    if (request.method === "POST" && pathname === TASKS_DISPLAY_ROUTE) {
       const form = await request.formData();
       const title = String(form.get("title") ?? "");
       const priority = String(form.get("priority") ?? "medium") as TaskPriority;
 
       try {
         await taskService.addTask({ title, priority });
-        return redirect("/");
+        return redirect(TASK_EDIT_ROUTE);
       } catch (error) {
         return htmlErrorResponse(error, 400);
       }
@@ -34,7 +46,7 @@ export function createTaskHttpHandler(taskService: TaskService) {
     if (request.method === "POST" && togglePageMatch) {
       try {
         await taskService.toggleTask(togglePageMatch[1]);
-        return redirect("/");
+        return redirect(TASK_EDIT_ROUTE);
       } catch (error) {
         return taskErrorResponse(error);
       }
@@ -44,7 +56,7 @@ export function createTaskHttpHandler(taskService: TaskService) {
     if (request.method === "POST" && deletePageMatch) {
       try {
         await taskService.deleteTask(deletePageMatch[1]);
-        return redirect("/");
+        return redirect(TASK_EDIT_ROUTE);
       } catch (error) {
         return taskErrorResponse(error);
       }
@@ -97,8 +109,17 @@ export function createTaskHttpHandler(taskService: TaskService) {
   };
 }
 
-function renderDocument(tasks: TaskData[]): string {
-  const app = render(<TaskApp tasks={tasks} priorities={TASK_PRIORITIES} />);
+function renderDocument(
+  tasks: TaskData[],
+  options: { editable: boolean },
+): string {
+  const app = render(
+    <TaskApp
+      tasks={tasks}
+      priorities={TASK_PRIORITIES}
+      editable={options.editable}
+    />,
+  );
 
   return `<!DOCTYPE html>
 <html lang="en">
