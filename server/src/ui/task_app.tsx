@@ -95,15 +95,15 @@ const styles: Record<string, JSX.CSSProperties> = {
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    padding: "24px",
+    padding: "16px",
   },
   card: {
     width: "min(760px, 100%)",
     background: "rgba(11, 20, 27, 0.88)",
     border: "1px solid rgba(255, 255, 255, 0.08)",
-    borderRadius: "24px",
-    padding: "24px",
-    boxShadow: "0 24px 60px rgba(0, 0, 0, 0.34)",
+    borderRadius: "20px",
+    padding: "16px",
+    boxShadow: "0 18px 40px rgba(0, 0, 0, 0.28)",
     backdropFilter: "blur(16px)",
   },
   header: {
@@ -131,39 +131,40 @@ const styles: Record<string, JSX.CSSProperties> = {
   },
   addForm: {
     display: "grid",
-    gridTemplateColumns: "minmax(0, 1fr) 140px 110px",
-    gap: "12px",
-    marginBottom: "18px",
+    gridTemplateColumns: "minmax(0, 1fr) 120px 88px",
+    gap: "8px",
+    marginBottom: "12px",
   },
   input: {
     width: "100%",
-    padding: "14px 16px",
-    borderRadius: "14px",
+    padding: "10px 12px",
+    borderRadius: "12px",
     border: "1px solid rgba(255, 255, 255, 0.14)",
     background: "rgba(255, 255, 255, 0.06)",
     color: "inherit",
   },
   select: {
-    padding: "14px 16px",
-    borderRadius: "14px",
+    padding: "10px 12px",
+    borderRadius: "12px",
     border: "1px solid rgba(255, 255, 255, 0.14)",
     background: "rgba(255, 255, 255, 0.06)",
     color: "inherit",
   },
   primaryButton: {
     border: "none",
-    borderRadius: "14px",
+    borderRadius: "12px",
     background: "#8ecae6",
     color: "#0b141b",
     fontWeight: 700,
+    padding: "0 12px",
   },
   list: {
     display: "grid",
-    gap: "10px",
+    gap: "6px",
   },
   emptyState: {
-    padding: "24px",
-    borderRadius: "18px",
+    padding: "18px",
+    borderRadius: "14px",
     border: "1px dashed rgba(255, 255, 255, 0.14)",
     color: "#c3d0dc",
   },
@@ -176,29 +177,29 @@ const styles: Record<string, JSX.CSSProperties> = {
   },
   taskRow: {
     display: "grid",
-    gridTemplateColumns: "52px minmax(0, 1fr) 88px",
-    gap: "8px",
+    gridTemplateColumns: "40px minmax(0, 1fr) 56px",
+    gap: "6px",
     alignItems: "center",
-    padding: "14px",
-    borderRadius: "18px",
+    padding: "8px 10px",
+    borderRadius: "14px",
     background: "rgba(255, 255, 255, 0.05)",
   },
   taskBody: {
     display: "flex",
     alignItems: "center",
-    gap: "10px",
+    gap: "8px",
     minWidth: 0,
   },
   deleteSlot: {
-    minHeight: "44px",
+    minHeight: "32px",
   },
   deleteButton: {
     width: "100%",
-    minHeight: "44px",
+    minHeight: "32px",
     display: "inline-flex",
     alignItems: "center",
     justifyContent: "center",
-    borderRadius: "12px",
+    borderRadius: "10px",
     border: "1px solid rgba(255, 255, 255, 0.14)",
     background: "transparent",
     color: "#ff9c9c",
@@ -207,26 +208,27 @@ const styles: Record<string, JSX.CSSProperties> = {
 
 function checkboxStyle(isChecked: boolean): JSX.CSSProperties {
   return {
-    width: "44px",
-    height: "44px",
+    width: "32px",
+    height: "32px",
     display: "inline-flex",
     alignItems: "center",
     justifyContent: "center",
     padding: 0,
-    borderRadius: "12px",
+    borderRadius: "10px",
     border: `2px solid ${isChecked ? "#3ddc97" : "rgba(255, 255, 255, 0.28)"}`,
     background: isChecked ? "#3ddc97" : "transparent",
     color: isChecked ? "#0b141b" : "transparent",
     fontWeight: 700,
-    fontSize: "22px",
+    fontSize: "18px",
   };
 }
 
 function taskTitleStyle(isChecked: boolean): JSX.CSSProperties {
   return {
-    fontSize: "18px",
+    fontSize: "16px",
     textDecoration: isChecked ? "line-through" : "none",
     opacity: isChecked ? 0.65 : 1,
+    lineHeight: 1.2,
   };
 }
 
@@ -241,8 +243,8 @@ function priorityBadgeStyle(priority: TaskPriority): JSX.CSSProperties {
     display: "inline-flex",
     alignItems: "center",
     justifyContent: "center",
-    width: "24px",
-    height: "24px",
+    width: "20px",
+    height: "20px",
     borderRadius: "999px",
     background,
     color: "#0b141b",
@@ -256,8 +258,8 @@ function PriorityIcon(props: { priority: TaskPriority }) {
       <svg
         aria-hidden="true"
         viewBox="0 0 24 24"
-        width="16"
-        height="16"
+        width="14"
+        height="14"
         fill="none"
         stroke="currentColor"
         stroke-width="3.5"
@@ -273,8 +275,8 @@ function PriorityIcon(props: { priority: TaskPriority }) {
     <svg
       aria-hidden="true"
       viewBox="0 0 24 24"
-      width="16"
-      height="16"
+      width="14"
+      height="14"
       fill="none"
       stroke="currentColor"
       stroke-width="3.5"
@@ -293,8 +295,8 @@ function TrashIcon() {
     <svg
       aria-hidden="true"
       viewBox="0 0 24 24"
-      width="18"
-      height="18"
+      width="16"
+      height="16"
       fill="none"
       stroke="currentColor"
       stroke-width="2"
