@@ -16,16 +16,6 @@ export function TaskApp(props: TaskAppProps) {
   return (
     <main style={styles.shell}>
       <section style={styles.card}>
-        <header style={styles.header}>
-          <div>
-            <p style={styles.eyebrow}>Local OBS Todo</p>
-            <h1 style={styles.title}>On-screen task list</h1>
-          </div>
-          <p style={styles.summary}>
-            {props.tasks.length} task{props.tasks.length === 1 ? "" : "s"}
-          </p>
-        </header>
-
         <form method="POST" action="/tasks" style={styles.addForm}>
           <input
             type="text"
