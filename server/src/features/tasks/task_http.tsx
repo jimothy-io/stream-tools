@@ -7,7 +7,7 @@ import {
   type TaskPriority,
 } from "./task_types.ts";
 
-const TASK_EDIT_ROUTE = "/task-edit";
+const TASK_EDIT_ROUTE = "/tasks-edit";
 const TASKS_DISPLAY_ROUTE = "/tasks";
 const TASK_EVENTS_ROUTE = "/api/tasks/events";
 
