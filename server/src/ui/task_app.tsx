@@ -68,12 +68,12 @@ export function TaskApp(props: TaskAppProps) {
                   </form>
 
                   <div style={styles.taskBody}>
+                    <span style={priorityBadgeStyle(task.priority)}>
+                      <PriorityIcon priority={task.priority} />
+                    </span>
                     <strong style={taskTitleStyle(task.isChecked)}>
                       {task.title}
                     </strong>
-                    <span style={priorityBadgeStyle(task.priority)}>
-                      {PRIORITY_LABELS[task.priority]}
-                    </span>
                   </div>
 
                   {task.isChecked
@@ -186,8 +186,8 @@ const styles: Record<string, JSX.CSSProperties> = {
   },
   taskRow: {
     display: "grid",
-    gridTemplateColumns: "86px minmax(0, 1fr) 88px",
-    gap: "12px",
+    gridTemplateColumns: "52px minmax(0, 1fr) 88px",
+    gap: "8px",
     alignItems: "center",
     padding: "14px",
     borderRadius: "18px",
@@ -195,9 +195,9 @@ const styles: Record<string, JSX.CSSProperties> = {
   },
   taskBody: {
     display: "flex",
-    flexWrap: "wrap",
     alignItems: "center",
     gap: "10px",
+    minWidth: 0,
   },
   deleteSlot: {
     minHeight: "44px",
@@ -250,14 +250,52 @@ function priorityBadgeStyle(priority: TaskPriority): JSX.CSSProperties {
   return {
     display: "inline-flex",
     alignItems: "center",
-    padding: "4px 10px",
+    justifyContent: "center",
+    width: "24px",
+    height: "24px",
     borderRadius: "999px",
     background,
     color: "#0b141b",
-    fontSize: "12px",
-    fontWeight: 700,
-    textTransform: "uppercase",
+    flexShrink: 0,
   };
+}
+
+function PriorityIcon(props: { priority: TaskPriority }) {
+  if (props.priority === "medium") {
+    return (
+      <svg
+        aria-hidden="true"
+        viewBox="0 0 24 24"
+        width="16"
+        height="16"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="3.5"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <path d="M6 12h12" />
+      </svg>
+    );
+  }
+
+  return (
+    <svg
+      aria-hidden="true"
+      viewBox="0 0 24 24"
+      width="16"
+      height="16"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="3.5"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    >
+      {props.priority === "high"
+        ? <path d="M6 15l6-6 6 6" />
+        : <path d="M6 9l6 6 6-6" />}
+    </svg>
+  );
 }
 
 function TrashIcon() {
