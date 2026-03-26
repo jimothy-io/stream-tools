@@ -11,11 +11,21 @@ const PRIORITY_ORDER: Record<TaskPriority, number> = {
   low: 2,
 };
 
+type TaskListener = (tasks: TaskData[]) => void | Promise<void>;
+
 export class TaskService {
   #repository: JsonTaskRepository;
+  #listeners = new Set<TaskListener>();
 
   constructor(repository: JsonTaskRepository) {
     this.#repository = repository;
+  }
+
+  subscribe(listener: TaskListener): () => void {
+    this.#listeners.add(listener);
+    return () => {
+      this.#listeners.delete(listener);
+    };
   }
 
   async listTasks(): Promise<TaskData[]> {
@@ -41,6 +51,7 @@ export class TaskService {
     const tasks = await this.#repository.list();
     tasks.push(task);
     await this.#repository.saveAll(tasks);
+    await this.#notifyListeners();
     return task;
   }
 
@@ -57,6 +68,7 @@ export class TaskService {
     task.completedAt = task.isChecked ? now : null;
 
     await this.#repository.saveAll(tasks);
+    await this.#notifyListeners();
     return task;
   }
 
@@ -69,6 +81,18 @@ export class TaskService {
     }
 
     await this.#repository.saveAll(nextTasks);
+    await this.#notifyListeners();
+  }
+
+  async #notifyListeners(): Promise<void> {
+    if (this.#listeners.size === 0) {
+      return;
+    }
+
+    const tasks = await this.listTasks();
+    await Promise.all(
+      [...this.#listeners].map((listener) => listener(tasks)),
+    );
   }
 }
 

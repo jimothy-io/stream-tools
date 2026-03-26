@@ -87,6 +87,26 @@ Deno.test("TaskService validates input", async () => {
   );
 });
 
+Deno.test("TaskService notifies subscribers after mutations", async () => {
+  const repository = await createRepository();
+  const service = new TaskService(repository);
+  const snapshots: number[] = [];
+
+  const unsubscribe = service.subscribe((tasks) => {
+    snapshots.push(tasks.length);
+  });
+
+  const task = await service.addTask({
+    title: "Live task",
+    priority: "low",
+  });
+  await service.toggleTask(task.id);
+  await service.deleteTask(task.id);
+  unsubscribe();
+
+  assertEquals(snapshots, [1, 1, 0]);
+});
+
 async function createRepository(): Promise<JsonTaskRepository> {
   const directory = await Deno.makeTempDir();
   return new JsonTaskRepository(new URL(`file://${directory}/tasks.json`));

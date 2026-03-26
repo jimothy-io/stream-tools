@@ -9,8 +9,11 @@ import {
 
 const TASK_EDIT_ROUTE = "/task-edit";
 const TASKS_DISPLAY_ROUTE = "/tasks";
+const TASK_EVENTS_ROUTE = "/api/tasks/events";
 
 export function createTaskHttpHandler(taskService: TaskService) {
+  const sse = createTaskEventStream(taskService);
+
   return async (request: Request): Promise<Response> => {
     const url = new URL(request.url);
     const { pathname } = url;
@@ -26,7 +29,10 @@ export function createTaskHttpHandler(taskService: TaskService) {
 
     if (request.method === "GET" && pathname === TASKS_DISPLAY_ROUTE) {
       const tasks = await taskService.listTasks();
-      return htmlResponse(renderDocument(tasks, { editable: false }));
+      return htmlResponse(renderDocument(tasks, {
+        editable: false,
+        liveUpdates: true,
+      }));
     }
 
     if (request.method === "POST" && pathname === TASKS_DISPLAY_ROUTE) {
@@ -65,6 +71,10 @@ export function createTaskHttpHandler(taskService: TaskService) {
     if (request.method === "GET" && pathname === "/api/tasks") {
       const tasks = await taskService.listTasks();
       return jsonResponse({ tasks });
+    }
+
+    if (request.method === "GET" && pathname === TASK_EVENTS_ROUTE) {
+      return sse(request);
     }
 
     if (request.method === "POST" && pathname === "/api/tasks") {
@@ -111,7 +121,7 @@ export function createTaskHttpHandler(taskService: TaskService) {
 
 function renderDocument(
   tasks: TaskData[],
-  options: { editable: boolean },
+  options: { editable: boolean; liveUpdates?: boolean },
 ): string {
   const app = render(
     <TaskApp
@@ -158,8 +168,29 @@ function renderDocument(
       }
     </style>
   </head>
-  <body>${app}</body>
+  <body>${app}${renderLiveUpdateScript(options.liveUpdates ?? false)}</body>
 </html>`;
+}
+
+function renderLiveUpdateScript(liveUpdates: boolean): string {
+  if (!liveUpdates) {
+    return "";
+  }
+
+  return `
+    <script>
+      const source = new EventSource("${TASK_EVENTS_ROUTE}");
+      source.addEventListener("tasks", () => {
+        window.location.reload();
+      });
+      source.addEventListener("error", () => {
+        source.close();
+        window.setTimeout(() => {
+          window.location.reload();
+        }, 1000);
+      });
+    </script>
+  `;
 }
 
 function htmlResponse(body: string): Response {
@@ -212,4 +243,43 @@ function taskJsonErrorResponse(error: unknown): Response {
 
 function errorMessage(error: unknown): string {
   return error instanceof Error ? error.message : "Unknown error";
+}
+
+function createTaskEventStream(taskService: TaskService) {
+  const encoder = new TextEncoder();
+  const clients = new Set<ReadableStreamDefaultController<Uint8Array>>();
+
+  taskService.subscribe((tasks) => {
+    const payload = encoder.encode(
+      `event: tasks\ndata: ${JSON.stringify({ tasks })}\n\n`,
+    );
+    for (const client of clients) {
+      client.enqueue(payload);
+    }
+  });
+
+  return (request: Request): Response => {
+    const stream = new ReadableStream<Uint8Array>({
+      start(controller) {
+        clients.add(controller);
+        controller.enqueue(encoder.encode(": connected\n\n"));
+
+        request.signal.addEventListener("abort", () => {
+          clients.delete(controller);
+          controller.close();
+        }, { once: true });
+      },
+      cancel() {
+        // Deno will call cancel when the client disconnects normally.
+      },
+    });
+
+    return new Response(stream, {
+      headers: {
+        "cache-control": "no-cache",
+        "connection": "keep-alive",
+        "content-type": "text/event-stream",
+      },
+    });
+  };
 }
