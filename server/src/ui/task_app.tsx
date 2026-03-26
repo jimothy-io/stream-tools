@@ -76,7 +76,11 @@ export function TaskApp(props: TaskAppProps) {
                         </button>
                       </form>
                     )
-                    : <span style={checkboxStyle(task.isChecked)} />}
+                    : (
+                      <span style={checkboxStyle(task.isChecked)}>
+                        {task.isChecked ? "\u2713" : ""}
+                      </span>
+                    )}
 
                   <div style={taskBodyStyle(isObs)}>
                     <span style={priorityBadgeStyle(task.priority)}>
@@ -91,7 +95,10 @@ export function TaskApp(props: TaskAppProps) {
                     ? (
                       task.isChecked
                         ? (
-                          <form method="POST" action={`/tasks/${task.id}/delete`}>
+                          <form
+                            method="POST"
+                            action={`/tasks/${task.id}/delete`}
+                          >
                             <button
                               type="submit"
                               style={styles.deleteButton}
@@ -224,9 +231,11 @@ function checkboxStyle(isChecked: boolean): JSX.CSSProperties {
     justifyContent: "center",
     padding: 0,
     borderRadius: "10px",
-    border: `2px solid ${isChecked ? "#3ddc97" : "rgba(255, 255, 255, 0.28)"}`,
-    background: isChecked ? "#3ddc97" : "transparent",
-    color: isChecked ? "#0b141b" : "transparent",
+    border: `2px solid ${
+      isChecked ? "rgba(255, 255, 255, 0.72)" : "rgba(255, 255, 255, 0.28)"
+    }`,
+    background: isChecked ? "rgba(255, 255, 255, 0.06)" : "transparent",
+    color: isChecked ? "#ffffff" : "transparent",
     fontWeight: 700,
     fontSize: "18px",
   };
