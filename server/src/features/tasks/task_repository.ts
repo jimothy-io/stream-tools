@@ -10,6 +10,11 @@ export class JsonTaskRepository {
     this.#fileUrl = fileUrl;
   }
 
+  async initialize(): Promise<TaskData[]> {
+    const store = await this.#readStore();
+    return [...store.tasks];
+  }
+
   async list(): Promise<TaskData[]> {
     const store = await this.#readStore();
     return [...store.tasks];

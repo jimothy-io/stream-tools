@@ -9,5 +9,6 @@ const taskService = new TaskService(repository);
 const handler = createTaskHttpHandler(taskService);
 
 if (import.meta.main) {
+  await repository.initialize();
   Deno.serve({ port: 8000 }, handler);
 }
