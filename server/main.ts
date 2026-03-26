@@ -1,8 +1,13 @@
-export function add(a: number, b: number): number {
-  return a + b;
-}
+import { createTaskHttpHandler } from "./src/features/tasks/task_http.tsx";
+import { JsonTaskRepository } from "./src/features/tasks/task_repository.ts";
+import { TaskService } from "./src/features/tasks/task_service.ts";
 
-// Learn more at https://docs.deno.com/runtime/manual/examples/module_metadata#concepts
+const repository = new JsonTaskRepository(
+  new URL("./data/tasks.json", import.meta.url),
+);
+const taskService = new TaskService(repository);
+const handler = createTaskHttpHandler(taskService);
+
 if (import.meta.main) {
-  console.log("Add 2 + 3 =", add(2, 3));
+  Deno.serve({ port: 8000 }, handler);
 }
