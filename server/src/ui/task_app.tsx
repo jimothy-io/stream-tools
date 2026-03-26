@@ -1,4 +1,5 @@
 import type { JSX } from "preact";
+import { uiConfig } from "../../data/config.ts";
 import type { TaskData, TaskPriority } from "../features/tasks/task_types.ts";
 
 type TaskAppProps = {
@@ -248,7 +249,9 @@ function taskTitleStyle(
   return {
     fontSize: isObs ? "24px" : "16px",
     fontWeight: isObs ? 400 : 600,
-    textDecoration: "none",
+    textDecoration: isChecked && uiConfig.tasks.showCompletedStrikeThrough
+      ? "line-through"
+      : "none",
     opacity: isChecked ? (isObs ? 0.42 : 0.65) : 1,
     lineHeight: isObs ? 1 : 1.2,
     letterSpacing: "normal",
@@ -257,12 +260,6 @@ function taskTitleStyle(
 }
 
 function priorityBadgeStyle(priority: TaskPriority): JSX.CSSProperties {
-  const background = {
-    high: "#ef476f",
-    medium: "#ffd166",
-    low: "#06d6a0",
-  }[priority];
-
   return {
     display: "inline-flex",
     alignItems: "center",
@@ -270,7 +267,7 @@ function priorityBadgeStyle(priority: TaskPriority): JSX.CSSProperties {
     width: "20px",
     height: "20px",
     borderRadius: "999px",
-    background,
+    background: uiConfig.priorityColors[priority],
     color: "#0b141b",
     flexShrink: 0,
   };
