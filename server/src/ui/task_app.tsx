@@ -232,10 +232,10 @@ function checkboxStyle(isChecked: boolean): JSX.CSSProperties {
     padding: 0,
     borderRadius: "10px",
     border: `2px solid ${
-      isChecked ? "rgba(255, 255, 255, 0.72)" : "rgba(255, 255, 255, 0.28)"
+      isChecked ? "rgba(243, 247, 240, 0.42)" : "rgba(255, 255, 255, 0.28)"
     }`,
-    background: isChecked ? "rgba(255, 255, 255, 0.06)" : "transparent",
-    color: isChecked ? "#ffffff" : "transparent",
+    background: isChecked ? "rgba(243, 247, 240, 0.04)" : "transparent",
+    color: isChecked ? "rgba(243, 247, 240, 0.42)" : "transparent",
     fontWeight: 700,
     fontSize: "18px",
   };
@@ -248,7 +248,7 @@ function taskTitleStyle(
   return {
     fontSize: isObs ? "24px" : "16px",
     fontWeight: isObs ? 400 : 600,
-    textDecoration: isChecked ? "line-through" : "none",
+    textDecoration: "none",
     opacity: isChecked ? (isObs ? 0.42 : 0.65) : 1,
     lineHeight: isObs ? 1 : 1.2,
     letterSpacing: "normal",
