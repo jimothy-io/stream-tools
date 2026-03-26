@@ -84,12 +84,41 @@ export function TaskApp(props: TaskAppProps) {
                     )}
 
                   <div style={taskBodyStyle(isObs)}>
-                    <span style={priorityBadgeStyle(task.priority)}>
-                      <PriorityIcon priority={task.priority} />
-                    </span>
-                    <strong style={taskTitleStyle(task.isChecked, isObs)}>
-                      {task.title}
-                    </strong>
+                    {isEditable
+                      ? (
+                        <button
+                          type="button"
+                          data-priority-button
+                          data-task-id={task.id}
+                          style={priorityButtonStyle(task.priority)}
+                          aria-label={`Cycle priority for ${task.title}`}
+                          title="Cycle priority"
+                        >
+                          <PriorityIcon priority={task.priority} />
+                        </button>
+                      )
+                      : (
+                        <span style={priorityBadgeStyle(task.priority)}>
+                          <PriorityIcon priority={task.priority} />
+                        </span>
+                      )}
+                    {isEditable
+                      ? (
+                        <button
+                          type="button"
+                          data-title-button
+                          data-task-id={task.id}
+                          data-task-title={task.title}
+                          style={titleButtonStyle(task.isChecked, isObs)}
+                        >
+                          {task.title}
+                        </button>
+                      )
+                      : (
+                        <strong style={taskTitleStyle(task.isChecked, isObs)}>
+                          {task.title}
+                        </strong>
+                      )}
                   </div>
 
                   {isEditable
@@ -259,6 +288,23 @@ function taskTitleStyle(
   };
 }
 
+function titleButtonStyle(
+  isChecked: boolean,
+  isObs: boolean,
+): JSX.CSSProperties {
+  return {
+    border: "none",
+    background: "transparent",
+    padding: 0,
+    margin: 0,
+    color: "inherit",
+    cursor: "text",
+    textAlign: "left",
+    font: "inherit",
+    ...taskTitleStyle(isChecked, isObs),
+  };
+}
+
 function priorityBadgeStyle(priority: TaskPriority): JSX.CSSProperties {
   return {
     display: "inline-flex",
@@ -270,6 +316,16 @@ function priorityBadgeStyle(priority: TaskPriority): JSX.CSSProperties {
     background: uiConfig.priorityColors[priority],
     color: "#0b141b",
     flexShrink: 0,
+  };
+}
+
+function priorityButtonStyle(priority: TaskPriority): JSX.CSSProperties {
+  return {
+    border: "none",
+    padding: 0,
+    cursor: "pointer",
+    background: "transparent",
+    ...priorityBadgeStyle(priority),
   };
 }
 

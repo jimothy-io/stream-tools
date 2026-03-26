@@ -72,6 +72,51 @@ export class TaskService {
     return task;
   }
 
+  async updateTask(input: {
+    id: string;
+    title?: string;
+    priority?: TaskPriority;
+  }): Promise<TaskData> {
+    const tasks = await this.#repository.list();
+    const task = tasks.find((item) => item.id === input.id);
+    if (!task) {
+      throw new TaskNotFoundError(input.id);
+    }
+
+    if (typeof input.title === "string") {
+      task.title = normalizeTitle(input.title);
+    }
+
+    if (typeof input.priority === "string") {
+      task.priority = parsePriority(input.priority);
+    }
+
+    task.updatedAt = Date.now();
+
+    await this.#repository.saveAll(tasks);
+    await this.#notifyListeners();
+    return task;
+  }
+
+  async cycleTaskPriority(id: string): Promise<TaskData> {
+    const tasks = await this.#repository.list();
+    const task = tasks.find((item) => item.id === id);
+    if (!task) {
+      throw new TaskNotFoundError(id);
+    }
+
+    const currentIndex = TASK_PRIORITIES.indexOf(task.priority);
+    const nextPriority =
+      TASK_PRIORITIES[(currentIndex + 1) % TASK_PRIORITIES.length];
+
+    task.priority = nextPriority;
+    task.updatedAt = Date.now();
+
+    await this.#repository.saveAll(tasks);
+    await this.#notifyListeners();
+    return task;
+  }
+
   async deleteTask(id: string): Promise<void> {
     const tasks = await this.#repository.list();
     const nextTasks = tasks.filter((task) => task.id !== id);

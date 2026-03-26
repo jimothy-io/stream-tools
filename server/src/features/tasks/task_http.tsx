@@ -26,6 +26,7 @@ export function createTaskHttpHandler(taskService: TaskService) {
       const tasks = await taskService.listTasks();
       return htmlResponse(renderDocument(tasks, {
         editable: true,
+        editorEnhancements: true,
         variant: "editor",
       }));
     }
@@ -109,6 +110,40 @@ export function createTaskHttpHandler(taskService: TaskService) {
       }
     }
 
+    const cyclePriorityApiMatch = pathname.match(
+      /^\/api\/tasks\/([^/]+)\/cycle-priority$/,
+    );
+    if (request.method === "POST" && cyclePriorityApiMatch) {
+      try {
+        const task = await taskService.cycleTaskPriority(
+          cyclePriorityApiMatch[1],
+        );
+        return jsonResponse({ task });
+      } catch (error) {
+        return taskJsonErrorResponse(error);
+      }
+    }
+
+    const updateApiMatch = pathname.match(/^\/api\/tasks\/([^/]+)$/);
+    if (request.method === "PATCH" && updateApiMatch) {
+      try {
+        const body = await request.json() as {
+          title?: string;
+          priority?: string;
+        };
+
+        const task = await taskService.updateTask({
+          id: updateApiMatch[1],
+          title: body.title,
+          priority: body.priority as TaskPriority | undefined,
+        });
+
+        return jsonResponse({ task });
+      } catch (error) {
+        return taskJsonErrorResponse(error);
+      }
+    }
+
     const deleteApiMatch = pathname.match(/^\/api\/tasks\/([^/]+)$/);
     if (request.method === "DELETE" && deleteApiMatch) {
       try {
@@ -127,6 +162,7 @@ function renderDocument(
   tasks: TaskData[],
   options: {
     editable: boolean;
+    editorEnhancements?: boolean;
     liveUpdates?: boolean;
     variant?: "editor" | "obs";
   },
@@ -185,8 +221,94 @@ function renderDocument(
       }
     </style>
   </head>
-  <body>${app}${renderLiveUpdateScript(options.liveUpdates ?? false)}</body>
+  <body>${app}${renderEditorScript(options.editorEnhancements ?? false)}${
+    renderLiveUpdateScript(options.liveUpdates ?? false)
+  }</body>
 </html>`;
+}
+
+function renderEditorScript(enabled: boolean): string {
+  if (!enabled) {
+    return "";
+  }
+
+  return `
+    <script>
+      document.addEventListener("click", async (event) => {
+        const priorityButton = event.target.closest("[data-priority-button]");
+        if (priorityButton instanceof HTMLElement) {
+          const id = priorityButton.dataset.taskId;
+          if (!id) return;
+
+          await fetch("/api/tasks/" + id + "/cycle-priority", { method: "POST" });
+          window.location.reload();
+          return;
+        }
+
+        const titleButton = event.target.closest("[data-title-button]");
+        if (!(titleButton instanceof HTMLElement)) return;
+        if (document.querySelector("[data-inline-editor]")) return;
+
+        const id = titleButton.dataset.taskId;
+        const originalTitle = titleButton.dataset.taskTitle ?? titleButton.textContent ?? "";
+        if (!id) return;
+
+        const input = document.createElement("input");
+        input.type = "text";
+        input.value = originalTitle;
+        input.setAttribute("data-inline-editor", "true");
+        input.style.width = Math.max(titleButton.getBoundingClientRect().width + 24, 180) + "px";
+        input.style.padding = "4px 8px";
+        input.style.borderRadius = "8px";
+        input.style.border = "1px solid rgba(255, 255, 255, 0.18)";
+        input.style.background = "rgba(255, 255, 255, 0.08)";
+        input.style.color = "inherit";
+        input.style.font = "inherit";
+
+        titleButton.hidden = true;
+        titleButton.insertAdjacentElement("afterend", input);
+        input.focus();
+        input.select();
+
+        let handled = false;
+
+        const finish = async (commit) => {
+          if (handled) return;
+          handled = true;
+
+          const nextTitle = input.value.trim();
+          input.remove();
+          titleButton.hidden = false;
+
+          if (!commit || nextTitle === originalTitle || !nextTitle) {
+            return;
+          }
+
+          await fetch("/api/tasks/" + id, {
+            method: "PATCH",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({ title: nextTitle }),
+          });
+
+          window.location.reload();
+        };
+
+        input.addEventListener("keydown", (keyboardEvent) => {
+          if (keyboardEvent.key === "Enter") {
+            keyboardEvent.preventDefault();
+            finish(true);
+          }
+
+          if (keyboardEvent.key === "Escape") {
+            keyboardEvent.preventDefault();
+            finish(false);
+          }
+        });
+
+        input.addEventListener("blur", () => finish(true), { once: true });
+      });
+    </script>
+  `;
 }
 
 function renderLiveUpdateScript(liveUpdates: boolean): string {

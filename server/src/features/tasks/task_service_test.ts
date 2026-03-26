@@ -87,6 +87,43 @@ Deno.test("TaskService validates input", async () => {
   );
 });
 
+Deno.test("TaskService updates task title and priority", async () => {
+  const repository = await createRepository();
+  const service = new TaskService(repository);
+
+  const task = await service.addTask({
+    title: "Initial title",
+    priority: "low",
+  });
+
+  const updated = await service.updateTask({
+    id: task.id,
+    title: "Renamed task",
+    priority: "high",
+  });
+
+  assertEquals(updated.title, "Renamed task");
+  assertEquals(updated.priority, "high");
+});
+
+Deno.test("TaskService cycles task priority", async () => {
+  const repository = await createRepository();
+  const service = new TaskService(repository);
+
+  const task = await service.addTask({
+    title: "Cycle me",
+    priority: "high",
+  });
+
+  const medium = await service.cycleTaskPriority(task.id);
+  const low = await service.cycleTaskPriority(task.id);
+  const high = await service.cycleTaskPriority(task.id);
+
+  assertEquals(medium.priority, "medium");
+  assertEquals(low.priority, "low");
+  assertEquals(high.priority, "high");
+});
+
 Deno.test("TaskService notifies subscribers after mutations", async () => {
   const repository = await createRepository();
   const service = new TaskService(repository);
