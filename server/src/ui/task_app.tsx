@@ -247,11 +247,11 @@ function taskTitleStyle(
 ): JSX.CSSProperties {
   return {
     fontSize: isObs ? "24px" : "16px",
-    fontWeight: isObs ? 700 : 600,
+    fontWeight: isObs ? 400 : 600,
     textDecoration: isChecked ? "line-through" : "none",
     opacity: isChecked ? (isObs ? 0.42 : 0.65) : 1,
-    lineHeight: isObs ? 1.1 : 1.2,
-    letterSpacing: isObs ? "0.01em" : "normal",
+    lineHeight: isObs ? 1 : 1.2,
+    letterSpacing: "normal",
     textWrap: "balance",
   };
 }
@@ -341,13 +341,10 @@ function taskRowStyle(
       borderRadius: "16px",
       width: "fit-content",
       maxWidth: "100%",
-      background: isChecked
-        ? "rgba(10, 15, 20, 0.42)"
-        : "rgba(10, 15, 20, 0.72)",
+      background: "rgba(10, 15, 20, 0.82)",
       border: `1px solid ${
         isChecked ? "rgba(255, 255, 255, 0.08)" : "rgba(255, 255, 255, 0.14)"
       }`,
-      backdropFilter: "blur(8px)",
     };
   }
 
