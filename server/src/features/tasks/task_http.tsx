@@ -24,7 +24,10 @@ export function createTaskHttpHandler(taskService: TaskService) {
 
     if (request.method === "GET" && pathname === TASK_EDIT_ROUTE) {
       const tasks = await taskService.listTasks();
-      return htmlResponse(renderDocument(tasks, { editable: true }));
+      return htmlResponse(renderDocument(tasks, {
+        editable: true,
+        variant: "editor",
+      }));
     }
 
     if (request.method === "GET" && pathname === TASKS_DISPLAY_ROUTE) {
@@ -32,6 +35,7 @@ export function createTaskHttpHandler(taskService: TaskService) {
       return htmlResponse(renderDocument(tasks, {
         editable: false,
         liveUpdates: true,
+        variant: "obs",
       }));
     }
 
@@ -121,15 +125,26 @@ export function createTaskHttpHandler(taskService: TaskService) {
 
 function renderDocument(
   tasks: TaskData[],
-  options: { editable: boolean; liveUpdates?: boolean },
+  options: {
+    editable: boolean;
+    liveUpdates?: boolean;
+    variant?: "editor" | "obs";
+  },
 ): string {
   const app = render(
     <TaskApp
       tasks={tasks}
       priorities={TASK_PRIORITIES}
       editable={options.editable}
+      variant={options.variant}
     />,
   );
+
+  const bodyBackground = options.variant === "obs"
+    ? "transparent"
+    : `radial-gradient(circle at top, rgba(95, 193, 255, 0.16), transparent 34%),
+          linear-gradient(180deg, #101820 0%, #13232e 100%)`;
+  const rootBackground = options.variant === "obs" ? "transparent" : "#101820";
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -141,8 +156,12 @@ function renderDocument(
       :root {
         color-scheme: dark;
         font-family: "Avenir Next", "Segoe UI", sans-serif;
-        background: #101820;
+        background: ${rootBackground};
         color: #f3f7f0;
+      }
+
+      html {
+        background: ${rootBackground};
       }
 
       * {
@@ -152,9 +171,7 @@ function renderDocument(
       body {
         margin: 0;
         min-height: 100vh;
-        background:
-          radial-gradient(circle at top, rgba(95, 193, 255, 0.16), transparent 34%),
-          linear-gradient(180deg, #101820 0%, #13232e 100%);
+        background: ${bodyBackground};
       }
 
       button,
