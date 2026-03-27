@@ -234,14 +234,62 @@ function renderEditorScript(enabled: boolean): string {
 
   return `
     <script>
+      const priorityOptions = ["high", "medium", "low"];
+
       document.addEventListener("click", async (event) => {
         const priorityButton = event.target.closest("[data-priority-button]");
         if (priorityButton instanceof HTMLElement) {
           const id = priorityButton.dataset.taskId;
+          const currentPriority = priorityButton.dataset.taskPriority;
           if (!id) return;
+          if (document.querySelector("[data-priority-editor]")) return;
 
-          await fetch("/api/tasks/" + id + "/cycle-priority", { method: "POST" });
-          window.location.reload();
+          const select = document.createElement("select");
+          select.setAttribute("data-priority-editor", "true");
+          select.style.padding = "4px 8px";
+          select.style.borderRadius = "8px";
+          select.style.border = "1px solid rgba(255, 255, 255, 0.18)";
+          select.style.background = "rgba(16, 24, 32, 0.98)";
+          select.style.color = "inherit";
+          select.style.font = "inherit";
+
+          for (const priority of priorityOptions) {
+            const option = document.createElement("option");
+            option.value = priority;
+            option.textContent = priority;
+            option.selected = priority === currentPriority;
+            select.appendChild(option);
+          }
+
+          priorityButton.hidden = true;
+          priorityButton.insertAdjacentElement("afterend", select);
+          select.focus();
+
+          let handled = false;
+
+          const finish = async (commit) => {
+            if (handled) return;
+            handled = true;
+
+            const nextPriority = select.value;
+            select.remove();
+            priorityButton.hidden = false;
+
+            if (!commit || !nextPriority || nextPriority === currentPriority) {
+              return;
+            }
+
+            await fetch("/api/tasks/" + id, {
+              method: "PATCH",
+              headers: { "content-type": "application/json" },
+              body: JSON.stringify({ priority: nextPriority }),
+            });
+
+            window.location.reload();
+          };
+
+          select.addEventListener("change", () => finish(true), { once: true });
+          select.addEventListener("blur", () => finish(false), { once: true });
           return;
         }
 

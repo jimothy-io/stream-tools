@@ -90,9 +90,10 @@ export function TaskApp(props: TaskAppProps) {
                           type="button"
                           data-priority-button
                           data-task-id={task.id}
+                          data-task-priority={task.priority}
                           style={priorityButtonStyle(task.priority)}
-                          aria-label={`Cycle priority for ${task.title}`}
-                          title="Cycle priority"
+                          aria-label={`Choose priority for ${task.title}`}
+                          title="Choose priority"
                         >
                           <PriorityIcon priority={task.priority} />
                         </button>
